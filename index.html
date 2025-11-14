@@ -4,11 +4,6 @@
   <title>ESP32-CAM Viewer</title>
   <style>
     body {
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
       background: #111;
       color: #fff;
       font-family: Arial, sans-serif;
@@ -34,11 +29,7 @@
     }
 
     #startBtn:hover {
-      background: #45a049;
-    }
-
-    #videoContainer {
-      margin-top: 30px;
+      background: #3da044;
     }
 
     #camStream {
@@ -46,31 +37,66 @@
       max-width: 640px;
       border: 3px solid #333;
       border-radius: 8px;
-      display: none; /* hidden until button is clicked */
+      margin-top: 20px;
+      display: none;
+    }
+
+    #errorBox {
+      margin-top: 20px;
+      color: #ff5555;
+      font-size: 20px;
+      font-weight: bold;
+      display: none;
     }
   </style>
 </head>
-
 <body>
 
   <h1>ESP32-CAM Live Streaming</h1>
 
   <button id="startBtn" onclick="startStream()">Start Camera</button>
 
-  <div id="videoContainer">
-    <img id="camStream" src="" alt="Camera Stream">
-  </div>
+  <img id="camStream" src="" alt="Camera Stream">
+  <div id="errorBox"></div>
 
   <script>
     function startStream() {
-      const ip = "192.168.29.198"; 
+      const ip = "YOUR_ESP32_IP";   // <-- Replace with real IP
+
       const img = document.getElementById("camStream");
+      const errorBox = document.getElementById("errorBox");
+      const button = document.getElementById("startBtn");
 
-      img.src = `http://${ip}/stream`;   // ESP32-CAM streaming URL
-      img.style.display = "block";       // show video frame
+      // Reset both
+      img.style.display = "none";
+      errorBox.style.display = "none";
+      errorBox.innerHTML = "";
 
-      document.getElementById("startBtn").innerText = "Streaming...";
-      document.getElementById("startBtn").disabled = true;
+      // Start video stream
+      img.src = `http://${ip}/stream`;
+
+      // When image loads → show it
+      img.onload = function () {
+        img.style.display = "block";
+        errorBox.style.display = "none";
+        button.innerText = "Streaming...";
+        button.disabled = true;
+      };
+
+      // When an error occurs → show custom error message
+      img.onerror = function () {
+        img.style.display = "none";
+        errorBox.style.display = "block";
+        errorBox.innerHTML = "❌ Unable to connect to ESP32-CAM. Please check:<br><br>" +
+          "• ESP32 is powered on<br>" +
+          "• ESP32 is connected to WiFi<br>" +
+          "• IP address is correct<br>" +
+          "• Your device is on same network<br><br>" +
+          "IP Tried: http://" + ip + "/stream";
+
+        button.innerText = "Retry Camera";
+        button.disabled = false;
+      };
     }
   </script>
 
